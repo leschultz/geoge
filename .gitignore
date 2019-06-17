@@ -6,4 +6,5 @@
 *.lammpstrj
 *.dat
 *.rest
+*/averages_export/*
 *__pycache__*

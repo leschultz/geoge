@@ -1,0 +1,10 @@
+*.swp
+*.swo
+*.png
+*.txt
+*.lammps
+*.lammpstrj
+*.dat
+*.rest
+nvt/run_*
+*__pycache__*

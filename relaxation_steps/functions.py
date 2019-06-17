@@ -24,7 +24,7 @@ def run_creator(
     contents = template_contents
     contents = contents.replace('#replace_elements#', elements)
     contents = contents.replace('#replace_second_element_fraction#', fraction)
-    contents = contents.replace('#replace_potential#', potential)
+    contents = contents.replace('#replace_potential#', '../'+potential)
     contents = contents.replace('#replace_potential_type#', potential_type)
     contents = contents.replace('#replace_side#', side)
     contents = contents.replace('#replace_unit_cell_type#', unit_cell_type)

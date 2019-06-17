@@ -2,22 +2,22 @@
 
 # Generate runs
 
-relaxation_steps/run-creator.py\
+../relaxation_steps/run-creator.py\
 	50\
-        "/home/nerve/Documents/george/nvt/relaxation_steps/templates_lammps/steps.in"\
+        "../relaxation_steps/templates_lammps/steps.in"\
 	"Al Sm"\
 	"0.08"\
-        "/home/nerve/Documents/george/nvt/relaxation_steps/potentials/AlSm.eam.lammps.fs"\
+        "../relaxation_steps/potentials/AlSm.eam.lammps.fs"\
 	"eam/fs"\
 	4\
 	"fcc"\
 	4.04092655671750\
 	0.001\
 	100\
-	"nvt"\
-	"[5195.541707, 4929.250484, 4742.820526]"\
+	"npt"\
+	"[5194.618801, 4933.991294, 4731.716584]"\
 	"(1300, 15000)"\
-	"(800, 15000)"\
-	"(300, 15000)"\
+        "(800, 15000)"\
+        "(300, 15000)"\
 
-relaxation_steps/execute-runs.py
+../relaxation_steps/execute-runs.py

@@ -5,6 +5,8 @@ from PyQt5 import QtGui  # Added to be able to import ovito
 from ovito.modifiers import VoronoiAnalysisModifier
 from ovito.io import import_file
 
+from matplotlib import pyplot as pl
+
 from os.path import join
 
 import pandas as pd
@@ -15,11 +17,16 @@ import os
 from functions import *
 
 runpath = sys.argv[1]  # The top directory of runs
-infilename = sys.argv[2]  # The name for the LAMMPS input file
-trajfilename = sys.argv[3]  # The name for the trajectory file
-sysfilename = sys.argv[4]  # The name for the thermodynamic data file
-threshold = float(sys.argv[5])  # The edge threshold for VP analysis
-sigma = int(sys.argv[6])  # The cutoff for population filtering
+exportpath = sys.argv[2]  # The export directory for data
+infilename = sys.argv[3]  # The name for the LAMMPS input file
+trajfilename = sys.argv[4]  # The name for the trajectory file
+sysfilename = sys.argv[5]  # The name for the thermodynamic data file
+threshold = float(sys.argv[6])  # The edge threshold for VP analysis
+sigma = int(sys.argv[7])  # The cutoff for population filtering
+edges = int(sys.argv[8])  # The number of edges to consider
+faces = int(sys.argv[9])  # The nubmer of faces greater than or equal to
+
+edges_cor = edges-1  # Correction for indexing
 
 # Modifier for VP analysis on Ovito
 voro = VoronoiAnalysisModifier(
@@ -36,10 +43,10 @@ runs = -1
 for path, subdirs, files in os.walk(runpath):
 
     # Only paths containing files needed
-    condition = (infilename in files) 
+    condition = (infilename in files)
     condition = condition and (trajfilename in files)
     condition = condition and (sysfilename in files)
-    
+
     if not condition:
         continue
 
@@ -53,7 +60,7 @@ count = 0
 for path in paths:
 
     # Status update
-    print('Analyzing ('+str(count)+'/'+runs+ '): '+path)
+    print('Analyzing ('+str(count)+'/'+runs+'): '+path)
 
     # Relevant files
     infile = join(path, infilename)
@@ -67,7 +74,7 @@ for path in paths:
     holdsteps = inputparameters['holdsteps']
     dumprate = inputparameters['dumprate']
     elements = inputparameters['elements']
-    fraction =  inputparameters['fraction']
+    fraction = inputparameters['fraction']
     temperatures = inputparameters['temperatures']
 
     # Gather the thermodynamic data
@@ -115,7 +122,7 @@ for path in paths:
         dfvp = dfvp.sort_values(by=['counts'], ascending=False)
 
         # Count ICO fractions
-        dfico = dfvp[dfvp[4] >= 10]
+        dfico = dfvp[dfvp[edges_cor] >= faces]
         fraction = sum(dfico['fractions'])
 
         fractions.append(fraction)
@@ -124,7 +131,36 @@ for path in paths:
 
     fracs = np.stack((temperatures, fractions)).T
     dffracs = pd.DataFrame(fracs, columns=['temp', 'fracs'])
-    
-    print(dffracs)
+
+    # Path to save
+    export = join(exportpath, path.strip(runpath))
+
+    # Path to data
+    export_data = join(export, 'data')
+    if not os.path.exists(export_data):
+        os.makedirs(export_data)
+
+    # Path to plots
+    export_plots = join(export, 'plots')
+    if not os.path.exists(export_plots):
+        os.makedirs(export_plots)
+
+    dffracs.to_csv(
+                   join(export_data, 'ico_fraction_vs_temperature.txt'),
+                   index=False
+                   )
+
+    fig, ax = pl.subplots()
+
+    ax.plot(dffracs['temp'], dffracs['fracs'], linestyle='none', marker='.')
+
+    ax.set_xlabel('Temperature [K]')
+    ax.set_ylabel(r'ICO Fraction $(n_{'+str(edges)+r'} \geq'+str(faces)+')$')
+    ax.grid()
+
+    fig.tight_layout()
+    fig.savefig(join(export_plots, 'ico_fraction_vs_temperature'))
+
+    pl.close('all')
 
     count += 1

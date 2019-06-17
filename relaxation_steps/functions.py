@@ -69,12 +69,12 @@ def run_creator(
         for hold, vol in zip(holds, vols):
             temp = str(hold[0])
             step = str(hold[1])
-            l = str(vol**(1/3))
+            side_l = str(vol**(1/3))
 
             steps += 'change_box all'
-            steps += ' x final 0.0 '+l
-            steps += ' y final 0.0 '+l
-            steps += ' z final 0.0 '+l
+            steps += ' x final 0.0 '+side_l
+            steps += ' y final 0.0 '+side_l
+            steps += ' z final 0.0 '+side_l
             steps += ' units box'
             steps += '\n'
 

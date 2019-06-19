@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Generate runs
+
+../relaxation_steps/mean_ico.py\
+	"./"\
+	"./averages_export"\

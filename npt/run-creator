@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Generate runs
+
+../relaxation_steps/run-creator.py\
+	50\
+        "../relaxation_steps/templates_lammps/steps.in"\
+	"Al Sm"\
+	"0.08"\
+        "../relaxation_steps/potentials/AlSm.eam.lammps.fs"\
+	"eam/fs"\
+	4\
+	"fcc"\
+	4.04092655671750\
+	0.001\
+	100\
+	"npt"\
+	"[5194.618801, 4933.991294, 4731.716584]"\
+	"(1300, 15000)"\
+        "(800, 15000)"\
+        "(300, 15000)"\
+
+../relaxation_steps/execute-runs.py

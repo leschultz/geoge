@@ -18,7 +18,7 @@ boundary                                    p p p
 
 # Material
 variable                                    fraction                  equal  0.08
-variable                                    potential                 string ../../relaxation_steps/potentials/AlSm.eam.lammps.fs
+variable                                    potential                 string /home/nerve/Documents/george/relaxation_steps/potentials/AlSm.eam.lammps.fs
 variable                                    potential_type            string eam/fs
 
 # Geometric
@@ -30,7 +30,7 @@ variable                                    lattice_parm              equal  4.0
 variable                                    mytimestep                equal  0.001
 
 # Random seed
-variable                                    seed                      equal  5443184
+variable                                    seed                      equal  2074640
 
 # Data output
 variable                                    mydumprate                equal  100
@@ -84,13 +84,16 @@ fix                                         data_saving all ave/time 1 1 ${mydum
 # Start of run
 velocity all create 1300 ${seed} rot yes dist gaussian
 
-fix step all npt temp 1300 1300 0.1 iso 0 0 1
+change_box all x final 0.0 17.27446633421692 y final 0.0 17.27446633421692 z final 0.0 17.27446633421692 units box
+fix step all nvt temp 1300 1300 0.1
 run 15000
 unfix step
-fix step all npt temp 800 800 0.1 iso 0 0 1
+change_box all x final 0.0 16.9737441479144 y final 0.0 16.9737441479144 z final 0.0 16.9737441479144 units box
+fix step all nvt temp 800 800 0.1
 run 15000
 unfix step
-fix step all npt temp 300 300 0.1 iso 0 0 1
+change_box all x final 0.0 16.73139778457636 y final 0.0 16.73139778457636 z final 0.0 16.73139778457636 units box
+fix step all nvt temp 300 300 0.1
 run 15000
 unfix step
 

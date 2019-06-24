@@ -1,0 +1,243 @@
+LAMMPS (12 Dec 2018)
+# Written by Lane enrique Schultz
+
+# This input file can be used to hold at a beginning temperature, then
+# ascend or descend into a final tempeerature for a number of steps, then
+# hold at a final temperature.
+
+# Specifics regarding definable parameters are covered by the READMEs
+
+###############################################################################
+
+# Starting parameters
+units                                       metal
+atom_style                                  atomic
+dimension                                   3
+boundary                                    p p p
+
+###############################################################################
+
+# Material
+variable                                    fraction                  equal  0.08
+variable                                    potential                 string /home/nerve/Documents/george/relaxation_steps/potentials/AlSm.eam.lammps.fs
+variable                                    potential_type            string eam/fs
+
+# Geometric
+variable                                    side                      equal  4
+variable                                    unit_cell_type            string fcc
+variable                                    lattice_parm              equal  4.04092655671750
+
+# Time variables
+variable                                    mytimestep                equal  0.001
+
+# Random seed
+variable                                    seed                      equal  6330413
+
+# Data output
+variable                                    mydumprate                equal  100
+variable                                    data_file_characteristics string system.txt
+variable                                    data_file_dump_rate       string traj.lammpstrj
+variable                                    data_positions_final      string final.dat
+variable                                    data_restart              string restart.rest
+
+################################################################################
+
+# Simulation space
+lattice                                     ${unit_cell_type} ${lattice_parm}
+lattice                                     fcc ${lattice_parm}
+lattice                                     fcc 4.0409265567175
+Lattice spacing in x,y,z = 4.04093 4.04093 4.04093
+region                                      my_box block 0 ${side} 0 ${side} 0 ${side}
+region                                      my_box block 0 4 0 ${side} 0 ${side}
+region                                      my_box block 0 4 0 4 0 ${side}
+region                                      my_box block 0 4 0 4 0 4
+create_box                                  2 my_box
+Created orthogonal box = (0 0 0) to (16.1637 16.1637 16.1637)
+  1 by 1 by 1 MPI processor grid
+create_atoms                                1 box
+Created 256 atoms
+  Time spent = 0.000306845 secs
+set                                         group all type/fraction 2 ${fraction} 591904
+set                                         group all type/fraction 2 0.08 591904
+  14 settings made for type/fraction
+
+################################################################################
+
+# Data
+pair_style                                  ${potential_type}
+pair_style                                  eam/fs
+pair_coeff                                  * * ${potential} Al Sm
+pair_coeff                                  * * /home/nerve/Documents/george/relaxation_steps/potentials/AlSm.eam.lammps.fs Al Sm
+
+################################################################################
+
+# Computed values by LAMMPS
+compute                                     mytemp      all   temp
+compute                                     mypress     all   pressure thermo_temp
+compute                                     PE          all   pe
+compute                                     KE          all   ke
+
+# Computed variables
+variable                                    myvol       equal vol
+
+################################################################################
+
+# Time step
+timestep                                    ${mytimestep}
+timestep                                    0.001
+
+################################################################################
+
+# Save atom positions at an interval
+dump                                        my_dump_rate all custom ${mydumprate} ${data_file_dump_rate} id type xu yu zu
+dump                                        my_dump_rate all custom 100 ${data_file_dump_rate} id type xu yu zu
+dump                                        my_dump_rate all custom 100 traj.lammpstrj id type xu yu zu
+dump_modify                                 my_dump_rate sort id
+
+################################################################################
+
+# Open save data
+fix                                         data_saving all ave/time 1 1 ${mydumprate} c_mytemp c_mypress v_myvol c_PE c_KE file ${data_file_characteristics}
+fix                                         data_saving all ave/time 1 1 100 c_mytemp c_mypress v_myvol c_PE c_KE file ${data_file_characteristics}
+fix                                         data_saving all ave/time 1 1 100 c_mytemp c_mypress v_myvol c_PE c_KE file system.txt
+
+# Start of run
+velocity all create 1300 ${seed} rot yes dist gaussian
+velocity all create 1300 6330413 rot yes dist gaussian
+
+change_box all x final 0.0 17.27446633421692 y final 0.0 17.27446633421692 z final 0.0 17.27446633421692 units box
+  orthogonal box = (0 0 0) to (17.2745 16.1637 16.1637)
+  orthogonal box = (0 0 0) to (17.2745 17.2745 16.1637)
+  orthogonal box = (0 0 0) to (17.2745 17.2745 17.2745)
+fix step all nvt temp 1300 1300 0.1
+run 15000
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 10
+  ghost atom cutoff = 10
+  binsize = 5, bins = 4 4 4
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair eam/fs, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.683 | 4.683 | 4.683 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0         1300   -948.98931            0   -906.13957    16182.711 
+   15000    1393.7978    -951.7939            0   -905.85246   -516.31299 
+Loop time of 30.2981 on 1 procs for 15000 steps with 256 atoms
+
+Performance: 42.775 ns/day, 0.561 hours/ns, 495.080 timesteps/s
+99.9% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 29.426     | 29.426     | 29.426     |   0.0 | 97.12
+Neigh   | 0.29463    | 0.29463    | 0.29463    |   0.0 |  0.97
+Comm    | 0.26966    | 0.26966    | 0.26966    |   0.0 |  0.89
+Output  | 0.057915   | 0.057915   | 0.057915   |   0.0 |  0.19
+Modify  | 0.17227    | 0.17227    | 0.17227    |   0.0 |  0.57
+Other   |            | 0.07718    |            |       |  0.25
+
+Nlocal:    256 ave 256 max 256 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    2293 ave 2293 max 2293 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    26487 ave 26487 max 26487 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 26487
+Ave neighs/atom = 103.465
+Neighbor list builds = 313
+Dangerous builds = 0
+unfix step
+change_box all x final 0.0 16.9737441479144 y final 0.0 16.9737441479144 z final 0.0 16.9737441479144 units box
+  orthogonal box = (0 0 0) to (16.9737 17.2745 17.2745)
+  orthogonal box = (0 0 0) to (16.9737 16.9737 17.2745)
+  orthogonal box = (0 0 0) to (16.9737 16.9737 16.9737)
+fix step all nvt temp 800 800 0.1
+run 15000
+Per MPI rank memory allocation (min/avg/max) = 4.684 | 4.684 | 4.684 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+   15000    1393.7978   -936.81356            0   -890.87212    51626.029 
+   30000    723.03405   -981.35355            0   -957.52138    48.859291 
+Loop time of 32.4164 on 1 procs for 15000 steps with 256 atoms
+
+Performance: 39.980 ns/day, 0.600 hours/ns, 462.728 timesteps/s
+99.9% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 31.621     | 31.621     | 31.621     |   0.0 | 97.55
+Neigh   | 0.20725    | 0.20725    | 0.20725    |   0.0 |  0.64
+Comm    | 0.27166    | 0.27166    | 0.27166    |   0.0 |  0.84
+Output  | 0.057916   | 0.057916   | 0.057916   |   0.0 |  0.18
+Modify  | 0.17778    | 0.17778    | 0.17778    |   0.0 |  0.55
+Other   |            | 0.08046    |            |       |  0.25
+
+Nlocal:    256 ave 256 max 256 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    2374 ave 2374 max 2374 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    27988 ave 27988 max 27988 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 27988
+Ave neighs/atom = 109.328
+Neighbor list builds = 220
+Dangerous builds = 0
+unfix step
+change_box all x final 0.0 16.73139778457636 y final 0.0 16.73139778457636 z final 0.0 16.73139778457636 units box
+  orthogonal box = (0 0 0) to (16.7314 16.9737 16.9737)
+  orthogonal box = (0 0 0) to (16.7314 16.7314 16.9737)
+  orthogonal box = (0 0 0) to (16.7314 16.7314 16.7314)
+fix step all nvt temp 300 300 0.1
+run 15000
+Per MPI rank memory allocation (min/avg/max) = 4.685 | 4.685 | 4.685 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+   30000    723.03405   -973.40887            0    -949.5767    41647.056 
+   45000    303.79548   -1005.8287            0   -995.81519    501.35741 
+Loop time of 32.3978 on 1 procs for 15000 steps with 256 atoms
+
+Performance: 40.003 ns/day, 0.600 hours/ns, 462.994 timesteps/s
+100.0% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 31.762     | 31.762     | 31.762     |   0.0 | 98.04
+Neigh   | 0.040559   | 0.040559   | 0.040559   |   0.0 |  0.13
+Comm    | 0.27085    | 0.27085    | 0.27085    |   0.0 |  0.84
+Output  | 0.056815   | 0.056815   | 0.056815   |   0.0 |  0.18
+Modify  | 0.183      | 0.183      | 0.183      |   0.0 |  0.56
+Other   |            | 0.08505    |            |       |  0.26
+
+Nlocal:    256 ave 256 max 256 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    2442 ave 2442 max 2442 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    29320 ave 29320 max 29320 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 29320
+Ave neighs/atom = 114.531
+Neighbor list builds = 44
+Dangerous builds = 0
+unfix step
+
+
+# Close save data
+unfix                                       data_saving
+
+################################################################################
+
+# Data for final position and properties
+write_data                                  ${data_positions_final}
+write_data                                  final.dat
+write_restart                               ${data_restart}
+write_restart                               restart.rest
+Total wall time: 0:01:35
